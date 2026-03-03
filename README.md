@@ -7,8 +7,8 @@ https://github.com/user-attachments/assets/c832ff3a-3a8b-434a-abe5-572fc12ae999
 
 
 
-
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
+* `/androidApp` contains android entry point.
+* `/shared` is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
   - `commonMain` is for code that’s common for all targets.
   - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.

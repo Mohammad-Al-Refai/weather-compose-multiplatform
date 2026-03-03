@@ -1,17 +1,21 @@
 package mo.cmp.weather.ui
 
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import mo.cmp.weather.api.WeatherAPI
 import mo.cmp.weather.api.WeatherAPIStatus
+import org.jetbrains.compose.resources.StringResource
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.container
+import weathercmp.composeapp.generated.resources.Res
+import weathercmp.composeapp.generated.resources.requestFailed
+import weathercmp.composeapp.generated.resources.requestSucceeded
 
 sealed class LandingSideEffect {
-    data class ErrorSnackBar(val text: String) : LandingSideEffect()
-    data class SuccessSnackBar(val text: String) : LandingSideEffect()
+    data class ErrorSnackBar(val text: StringResource) : LandingSideEffect()
+    data class SuccessSnackBar(val text: StringResource) : LandingSideEffect()
 }
 
 data class LandingState(
@@ -25,15 +29,11 @@ data class LandingState(
     var isSuccess: Boolean = false
 )
 
-class LandingViewModel : ScreenModel,
+class LandingViewModel : ViewModel(),
     ContainerHost<LandingState, LandingSideEffect>, KoinComponent {
     private val weatherAPI by inject<WeatherAPI>()
     override val container =
-        screenModelScope.container<LandingState, LandingSideEffect>(LandingState())
-
-    init {
-        search()
-    }
+        viewModelScope.container<LandingState, LandingSideEffect>(LandingState())
 
     fun updateSearch(value: String) = intent {
         reduce {
@@ -50,7 +50,7 @@ class LandingViewModel : ScreenModel,
                 reduce {
                     state.copy(isLoading = false, isError = true, isSuccess = false)
                 }
-                postSideEffect(LandingSideEffect.ErrorSnackBar("Ops unexpected error accord!"))
+                postSideEffect(LandingSideEffect.ErrorSnackBar(Res.string.requestFailed))
             }
 
             is WeatherAPIStatus.Success -> {
@@ -64,7 +64,7 @@ class LandingViewModel : ScreenModel,
                         temp = result.data.main.temp
                     )
                 }
-                postSideEffect(LandingSideEffect.SuccessSnackBar("Request Succeeded!"))
+                postSideEffect(LandingSideEffect.SuccessSnackBar(Res.string.requestSucceeded))
             }
         }
 

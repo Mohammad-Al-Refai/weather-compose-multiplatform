@@ -27,7 +27,6 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,107 +35,113 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
-import cafe.adriel.voyager.core.screen.Screen
-import mo.cmp.weather.helpers.koinScreenModel
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
+import weathercmp.composeapp.generated.resources.Res
+import weathercmp.composeapp.generated.resources.country
+import weathercmp.composeapp.generated.resources.feelsLike
+import weathercmp.composeapp.generated.resources.search
+import weathercmp.composeapp.generated.resources.temperature
+import weathercmp.composeapp.generated.resources.tryAgain
+import weathercmp.composeapp.generated.resources.unexpectedError
+import weathercmp.composeapp.generated.resources.windSpeed
 
-class LandingPage : Screen {
-    @Composable
-    override fun Content() {
-        val viewModel = koinScreenModel<LandingViewModel>()
-        val state by viewModel.container.stateFlow.collectAsState()
-        val lifecycle = LocalLifecycleOwner.current
-        val snackbarHostState = remember { SnackbarHostState() }
-
-        // Listen for side effects
-        LaunchedEffect(lifecycle) {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.container.sideEffectFlow.collect { sideEffect ->
-                    when (sideEffect) {
-                        is LandingSideEffect.ErrorSnackBar -> when (snackbarHostState.showSnackbar(
-                            sideEffect.text,
-                            actionLabel = "Try again"
-                        )) {
-                            SnackbarResult.Dismissed -> {}
-                            SnackbarResult.ActionPerformed -> viewModel.search()
-                        }
-
-                        is LandingSideEffect.SuccessSnackBar -> snackbarHostState.showSnackbar(sideEffect.text)
-                    }
-                }
+@Composable
+fun LandingPage(vm: LandingViewModel = koinViewModel()) {
+    val state by vm.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        vm.search()
+    }
+    // Listen for side effects
+    vm.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is LandingSideEffect.ErrorSnackBar -> when (snackbarHostState.showSnackbar(
+                getString(sideEffect.text),
+                actionLabel = getString(Res.string.tryAgain)
+            )) {
+                SnackbarResult.Dismissed -> {}
+                SnackbarResult.ActionPerformed -> vm.search()
             }
-        }
-        Scaffold(
-            snackbarHost = { SnackbarHost(hostState = snackbarHostState){
-                Snackbar(snackbarData = it)
-            } },
-            topBar = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextField(
-                        value = state.searchValue,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = TextFieldDefaults.textFieldColors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        onValueChange = {
-                            viewModel.updateSearch(it)
-                        })
-                    Button(onClick = viewModel::search) {
-                        Text("Search")
-                    }
-                }
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
 
-                if (state.isError) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp)
-                            .fillMaxHeight(0.1f)
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(MaterialTheme.colors.error),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Unexpected error", color = MaterialTheme.colors.onError)
-                    }
-                }
-                if (state.isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else if (state.isSuccess) {
-                    PageContent(
-                        countryName = state.countryName,
-                        temp = state.temp,
-                        feelsLike = state.feelsLike,
-                        windSpeed = state.windSpeed
-                    )
-                }
-
-            }
+            is LandingSideEffect.SuccessSnackBar -> snackbarHostState.showSnackbar(getString(sideEffect.text))
         }
     }
 
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) {
+                Snackbar(snackbarData = it)
+            }
+        },
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = state.searchValue,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    onValueChange = vm::updateSearch
+                )
+                Button(onClick = vm::search) {
+                    Text(stringResource(Res.string.search))
+                }
+            }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+
+            if (state.isError) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)
+                        .fillMaxHeight(0.1f)
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(MaterialTheme.colors.error),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(Res.string.unexpectedError),
+                        color = MaterialTheme.colors.onError
+                    )
+                }
+            }
+            if (state.isLoading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (state.isSuccess) {
+                PageContent(
+                    countryName = state.countryName,
+                    temp = state.temp,
+                    feelsLike = state.feelsLike,
+                    windSpeed = state.windSpeed
+                )
+            }
+
+        }
+    }
 }
 
 @Composable
@@ -158,7 +163,7 @@ fun PageContent(countryName: String, temp: Double, feelsLike: Double, windSpeed:
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 RoundedBox(
-                    title = "Country",
+                    title = stringResource(Res.string.country),
                     content = countryName,
                     color = MaterialTheme.colors.primary
                 )
@@ -168,14 +173,14 @@ fun PageContent(countryName: String, temp: Double, feelsLike: Double, windSpeed:
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     RoundedBox(
-                        title = "Temperature",
+                        title = stringResource(Res.string.temperature),
                         content = "${temp}C",
                         color = MaterialTheme.colors.primary,
                         modifier = Modifier.weight(1f)
                     )
                     Spacer(Modifier.padding(5.dp))
                     RoundedBox(
-                        title = "Feels like",
+                        title = stringResource(Res.string.feelsLike),
                         content = "${feelsLike}C",
                         color = MaterialTheme.colors.secondary,
                         modifier = Modifier.weight(1f)
@@ -183,7 +188,7 @@ fun PageContent(countryName: String, temp: Double, feelsLike: Double, windSpeed:
                 }
                 Spacer(Modifier.padding(5.dp))
                 RoundedBox(
-                    title = "Wind speed",
+                    title = stringResource(Res.string.windSpeed),
                     content = windSpeed.toString(),
                     color = MaterialTheme.colors.secondaryVariant,
                 )

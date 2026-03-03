@@ -1,0 +1,11 @@
+<resources>
+    <string name="country">Country</string>
+    <string name="temperature">Temperature</string>
+    <string name="feelsLike">Feels like</string>
+    <string name="windSpeed">Wind speed</string>
+    <string name="unexpectedError">Unexpected error</string>
+    <string name="search">Search</string>
+    <string name="tryAgain">Try again</string>
+    <string name="requestFailed">Request Failed!</string>
+    <string name="requestSucceeded">Request Succeeded!</string>
+</resources>

@@ -9,9 +9,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.container
-import weathercmp.composeapp.generated.resources.Res
-import weathercmp.composeapp.generated.resources.requestFailed
-import weathercmp.composeapp.generated.resources.requestSucceeded
+import weathercmp.shared.generated.resources.Res
+import weathercmp.shared.generated.resources.requestFailed
+import weathercmp.shared.generated.resources.requestSucceeded
 
 sealed class LandingSideEffect {
     data class ErrorSnackBar(val text: StringResource) : LandingSideEffect()

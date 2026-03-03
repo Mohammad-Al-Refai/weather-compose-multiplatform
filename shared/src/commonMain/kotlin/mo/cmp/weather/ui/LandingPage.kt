@@ -40,14 +40,14 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
-import weathercmp.composeapp.generated.resources.Res
-import weathercmp.composeapp.generated.resources.country
-import weathercmp.composeapp.generated.resources.feelsLike
-import weathercmp.composeapp.generated.resources.search
-import weathercmp.composeapp.generated.resources.temperature
-import weathercmp.composeapp.generated.resources.tryAgain
-import weathercmp.composeapp.generated.resources.unexpectedError
-import weathercmp.composeapp.generated.resources.windSpeed
+import weathercmp.shared.generated.resources.Res
+import weathercmp.shared.generated.resources.country
+import weathercmp.shared.generated.resources.feelsLike
+import weathercmp.shared.generated.resources.search
+import weathercmp.shared.generated.resources.temperature
+import weathercmp.shared.generated.resources.tryAgain
+import weathercmp.shared.generated.resources.unexpectedError
+import weathercmp.shared.generated.resources.windSpeed
 
 @Composable
 fun LandingPage(vm: LandingViewModel = koinViewModel()) {

@@ -12,7 +12,7 @@ plugins {
 
 kotlin {
     androidLibrary {
-        namespace = "mo.cmp.weather.composeApp"
+        namespace = "mo.cmp.weather.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
@@ -30,7 +30,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "shared"
+            baseName = "Shared"
             isStatic = true
             binaryOption("bundleId", "mo.cmp.weather.shared")
         }
